@@ -2,6 +2,8 @@
 #include<stdlib.h>
 #include<string.h>
 #include<stdint.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #define KB(x) x * 1024
 
@@ -11,13 +13,22 @@ typedef struct {
     int offSet;
 } Arena;
 
+// void ArenaInit(Arena *arena, int buffer) {
+//     *arena = (Arena) {
+//         .buffer = malloc(buffer),
+//         .bufferSize = buffer, 
+//         .offSet = 0
+//     };
+// }
+
 void ArenaInit(Arena *arena, int buffer) {
     *arena = (Arena) {
-        .buffer = malloc(buffer),
+        .buffer = (char *) mmap(NULL, buffer, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0),
         .bufferSize = buffer, 
         .offSet = 0
     };
 }
+
 
 void ArenaAlloc1(Arena *arena, int **a, int size) {
     if((*arena).offSet + size <= (*arena).bufferSize) {
