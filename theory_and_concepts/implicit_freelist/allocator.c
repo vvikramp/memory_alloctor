@@ -26,13 +26,16 @@ header_t make_header(size_t size, bool a);
 header_t *next_block(header_t *h);
 size_t block_size(header_t *h);
 bool is_alloc(header_t *h);
+size_t align_up(size_t n);
+header_t *header_of(void *ptr);
+char *payload_of(header_t *h);
 
 void heap_dump(Heap *heap);
 
 
-int main() {
+int main(void) {
 
-    Heap heap = {};
+    Heap heap = {0};
     
     if(heap_init(&heap, KB(10))) {
         printf("Heap initiation successfully.\n");
@@ -57,15 +60,15 @@ bool heap_init(Heap *heap, size_t size) {
     if(base == MAP_FAILED) {
         return false;
     }
-    heap->start = base + 8;
-    heap->end = base + size - 8;
+    heap->start = base + HEADER_SIZE;
+    heap->end = base + size - HEADER_SIZE;
     *(header_t *)heap->start = make_header(heap->end - heap->start, false);
     return true;
 }
 
 void *heap_alloc(Heap *heap, size_t size) {
-    // size_t padding = (size + HEADER_SIZE) % ALIGNMENT; -> this is the remainder not the allignemnt for 32 byte block
-    size_t need = ((size + HEADER_SIZE) + ALIGNMENT - 1) & (size_t)~(ALIGNMENT - 1); // round up then round down (The low 4 bits are its remainder when divided by 16) - cool
+    
+    size_t need = align_up(size);
 
     for(header_t *h = (header_t *)heap->start; (char *)h < heap->end; h=next_block(h)) {
         size_t b_size = block_size(h);
@@ -75,11 +78,11 @@ void *heap_alloc(Heap *heap, size_t size) {
         }
 
         size_t leftover = b_size - need;
-        if(leftover >= ALIGNMENT) {
+        if(leftover >= MIN_BLOCK) {
             header_t *next = (header_t *)((char *)h + need);
             *next = make_header(leftover, false);
         }
-        *h = make_header(need, true);
+        *h = make_header(b_size, true);
         return (void *)(h+1);
     }
 
@@ -88,22 +91,22 @@ void *heap_alloc(Heap *heap, size_t size) {
 
 void heap_free(Heap *heap, void *ptr) {
     if(ptr == NULL) {
-        printf("Cannot free NULL ptr -> FREE FAILED\n");
+        printf("free NULL ptr -> Doing ntg\n");
         return;
     }
     if(((size_t)ptr & (ALIGNMENT -1)) != 0) {
-        printf("ptr is not aligned to 16 -> FREE FAILED");
+        printf("ptr is not aligned to 16 -> FREE FAILED\n");
         return;
     }
 
-    header_t *h = (header_t *)((char *)ptr - 8);
+    header_t *h = header_of(ptr);
 
     if((char *)h < heap->start || (char *)h >= heap->end) {
-        printf("Free outside heap space is blocked -> FREE FAILED");
+        printf("Free outside heap space is blocked -> FREE FAILED\n");
         return;
     }
     if(!is_alloc(h)){
-        printf("Already Freed -> FREE FAILED");
+        printf("Already Freed -> FREE FAILED\n");
         return;
     }
     
@@ -133,7 +136,7 @@ bool heap_check(Heap *heap) {
             check = false;
         }
 
-        char *payload = (char *)h + ALIGNMENT;
+        char *payload = payload_of(h);
         if(((size_t)payload & (ALIGNMENT-1)) !=0) {
             printf("Payload is not aligned\n");
             check = false;
@@ -141,7 +144,7 @@ bool heap_check(Heap *heap) {
 
         header_t *next_h = next_block(h);
         if((char *)next_h < heap->end && !is_alloc(next_h) && !is_alloc(h)) {
-            printf("Continous free blocks found"\n);
+            printf("Continous free blocks found\n");
             check = false;
         }
         h = next_h;
@@ -177,4 +180,17 @@ size_t block_size(header_t *h) {
 
 bool is_alloc(header_t *h) {
     return (*h & 1);
+}
+
+size_t align_up(size_t n) {
+    // size_t padding = (size + HEADER_SIZE) % ALIGNMENT; -> this is the remainder not the allignemnt for 32 byte block
+    return (n + HEADER_SIZE + (ALIGNMENT - 1)) & ~(ALIGNMENT -1); // round up and down down (The low 4 bits are its remainder when divided by 16) - cool
+}
+
+header_t *header_of(void *ptr) {
+    return (header_t *)((char *)ptr - HEADER_SIZE);
+}
+
+char *payload_of(header_t *h) {
+    return (char *)h + HEADER_SIZE;
 }
