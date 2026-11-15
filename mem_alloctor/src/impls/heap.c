@@ -3,57 +3,9 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
-#define KB(x) ((x) * 1024)
-#define ALIGNMENT 16
-#define HEADER_SIZE sizeof(size_t)
-#define MIN_BLOCK 16
+#include "block.h"
+#include "heap.h"
 
-typedef size_t header_t;
-
-typedef struct {
-    char *start;
-    char *end;
-} Heap;
-
-// main funcs
-bool heap_init(Heap *heap, size_t size);
-void *heap_alloc(Heap *heap, size_t size);   // TODO: first fit + split
-void heap_free(Heap *heap, void *ptr);      // TODO: clear bit + merge forward
-bool heap_check(Heap *heap);                // TODO: see below
-
-// helpers
-header_t make_header(size_t size, bool a);
-header_t *next_block(header_t *h);
-size_t block_size(header_t *h);
-bool is_alloc(header_t *h);
-size_t align_up(size_t n);
-header_t *header_of(void *ptr);
-char *payload_of(header_t *h);
-
-void heap_dump(Heap *heap);
-
-
-int main(void) {
-
-    Heap heap = {0};
-    
-    if(heap_init(&heap, KB(10))) {
-        printf("Heap initiation successfully.\n");
-        // printf("sizeof alocated: %ld", (heap.end - heap.start));
-    } else {
-        printf("Heap initiation failed");
-        return 0;
-    }
-
-    int *p = heap_alloc(&heap, sizeof(int));
-    *p = 4;
-    printf("%d\n", *p);
-
-    heap_free(&heap, p);
-    heap_check(&heap);
-}
-
-// main funcs impl
 bool heap_init(Heap *heap, size_t size) {
     char *base = mmap(NULL, size,  PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
@@ -165,35 +117,4 @@ bool heap_check(Heap *heap) {
     }
 
     return check;
-}
-
-// helpers impl
-header_t make_header(size_t size, bool a) {
-    return size | a;
-}
-
-header_t *next_block(header_t *h) { 
-    return (header_t *)((char *)h + block_size(h)); 
-}
-
-// removing the flag bit
-size_t block_size(header_t *h) { 
-    return (*h & ~(ALIGNMENT - 1));
-}
-
-bool is_alloc(header_t *h) {
-    return (*h & 1);
-}
-
-size_t align_up(size_t n) {
-    // size_t padding = (size + HEADER_SIZE) % ALIGNMENT; -> this is the remainder not the allignemnt for 32 byte block
-    return (n + HEADER_SIZE + (ALIGNMENT - 1)) & ~(ALIGNMENT -1); // round up and down down (The low 4 bits are its remainder when divided by 16) - cool
-}
-
-header_t *header_of(void *ptr) {
-    return (header_t *)((char *)ptr - HEADER_SIZE);
-}
-
-char *payload_of(header_t *h) {
-    return (char *)h + HEADER_SIZE;
 }
