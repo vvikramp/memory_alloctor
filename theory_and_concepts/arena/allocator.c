@@ -5,7 +5,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#define KB(x) x * 1024
+#define KB(x) ((x) * 1024)
 
 typedef struct {
     char* buffer;
@@ -51,7 +51,8 @@ void* ArenaAlloc2(Arena *arena, int numOfElements, int elementSize, int alignSiz
     // }
 
     uintptr_t totalCurrentOffSet = (uintptr_t)(arena->buffer + arena->offSet);
-    uintptr_t padding = alignSize - (totalCurrentOffSet % alignSize);
+    // uintptr_t padding = alignSize - (totalCurrentOffSet % alignSize);
+    uintptr_t padding = (~totalCurrentOffSet + 1) & (alignSize - 1);
     totalCurrentOffSet += padding;
 
     if(totalCurrentOffSet + alloctmentSize > (uintptr_t)arena->buffer + (uintptr_t)arena->bufferSize) {
@@ -95,6 +96,8 @@ int main() {
 
     printf("sizeof a : %zu\n", sizeof(*a));
     printf("value of a : %s\n", a);
+
+    ArenaDelete(&arena);
 
     return 0;
 }
