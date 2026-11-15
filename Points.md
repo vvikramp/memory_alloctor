@@ -31,6 +31,4 @@
     • Kernel Overhead. Every mmap() and munmap() requires a context switch into the kernel, updates to page tables, and TLB (Translation Lookaside Buffer) invalidations.
     • Page Rounding. The kernel only allocates memory in whole pages (typically 4 KB). Calling mmap() for a 16-byte struct would waste 4,080 bytes of address space and physical memory per allocation.
 
-
-
-
+- Every type has its own alignment rule. A type can only sit at addresses divisible by its alignment.
