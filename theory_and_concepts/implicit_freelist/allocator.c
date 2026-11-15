@@ -67,6 +67,9 @@ bool heap_init(Heap *heap, size_t size) {
 }
 
 void *heap_alloc(Heap *heap, size_t size) {
+
+    if (size > (size_t)(heap->end - heap->start)) return NULL;
+
     
     size_t need = align_up(size);
 

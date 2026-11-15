@@ -34,4 +34,6 @@
 - Every type has its own alignment rule. A type can only sit at addresses divisible by its alignment.
 
 - Use (uintptr_t)ptr instead of (size_t)ptr when you treat a pointer as a number. 
+size_t -> Big enough to hold the size of any object
+uintptr_t -> Big enough to hold any pointer and convert it back without losing bits
 
