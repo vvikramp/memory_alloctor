@@ -3,7 +3,6 @@
 
 #include <stdbool.h> 
 
-#define KB(x) ((x) * 1024)
 #define ALIGNMENT 16
 #define HEADER_SIZE sizeof(size_t)
 #define MIN_BLOCK 16

@@ -120,3 +120,18 @@ bool heap_check(Heap *heap) {
 
     return check;
 }
+
+bool heap_destroy(Heap *heap) {
+    int res = munmap(heap->start - HEADER_SIZE, (heap->end - heap->start) + (2 * HEADER_SIZE)); // 0 for success and -1 for failure
+    if(res == 0) {
+        printf("Heap destroyed passed\n");
+        heap->start = NULL;
+        heap->end = NULL;
+        return true;
+    } else {
+        // munmap sets the global variable errno to indicate the errors 
+        printf("Heap destroyed failed\n");
+        return false;
+    }
+
+}

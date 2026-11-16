@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
-#include "block.h"
 #include "heap.h"
 
 int main(void) {
@@ -14,8 +13,8 @@ int main(void) {
         printf("Heap initiation successfully.\n");
         // printf("sizeof alocated: %ld", (heap.end - heap.start));
     } else {
-        printf("Heap initiation failed");
-        return 0;
+        printf("Heap initiation failed\n");
+        return 1;
     }
 
     int *p = heap_alloc(&heap, sizeof(int));
@@ -24,4 +23,5 @@ int main(void) {
 
     heap_free(&heap, p);
     heap_check(&heap);
+    heap_destroy(&heap);
 }
