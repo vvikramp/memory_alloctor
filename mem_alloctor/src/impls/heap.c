@@ -22,7 +22,6 @@ void *heap_alloc(Heap *heap, size_t size) {
 
     if (size > (size_t)(heap->end - heap->start)) return NULL;
 
-    
     size_t need = align_up(size);
 
     for(header_t *h = (header_t *)heap->start; (char *)h < heap->end; h=next_block(h)) {
@@ -35,9 +34,12 @@ void *heap_alloc(Heap *heap, size_t size) {
         size_t leftover = b_size - need;
         if(leftover >= MIN_BLOCK) {
             header_t *next = (header_t *)((char *)h + need);
-            *next = make_header(leftover, false);
+            *next = make_header(leftover, false); // split the leftover block
+            *h = make_header(need, true);
+        } else {
+            *h = make_header(b_size, true);
         }
-        *h = make_header(b_size, true);
+        
         return (void *)(h+1);
     }
 
