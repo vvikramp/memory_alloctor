@@ -18,7 +18,7 @@ bool heap_init(Heap *heap, size_t size) {
     *(header_t *)base = make_header(HEADER_SIZE, true); // fake_footer at start
     *(header_t *)heap->end = make_header(0, true); // fake_header at end
 
-    set_block(heap->start, heap->end - heap->start, false);
+    set_block((header_t *)heap->start, heap->end - heap->start, false);
     return true;
 }
 
@@ -41,10 +41,10 @@ void *heap_alloc(Heap *heap, size_t size) {
             // *next = make_header(leftover, false); // split the leftover block
             // *h = make_header(need, true);
 
-            set_block((char *)h, need, true); 
-            set_block((char *)h + need, leftover, false); // split
+            set_block(h, need, true); 
+            set_block(next_block(h), leftover, false); // split
         } else {
-            set_block((char *)h, b_size, true); 
+            set_block(h, b_size, true); 
         }
         
         return (void *)(h+1);
@@ -64,6 +64,7 @@ void heap_free(Heap *heap, void *ptr) {
     }
 
     header_t *h = header_of(ptr);
+    header_t *block = h;
 
     if((char *)h < heap->start || (char *)h >= heap->end) {
         printf("Free outside heap space is blocked -> FREE FAILED\n");
@@ -74,21 +75,21 @@ void heap_free(Heap *heap, void *ptr) {
         return;
     }
 
-    size_t free_size = block_size(ptr);
+    size_t free_size = block_size(h);
 
     header_t *next_h = next_block(h);
-    header_t *prev_f = (header_t *)(char *)h - HEADER_SIZE;
+    header_t *prev_f = prev_footer(h);
 
     if(!is_alloc(prev_f)) {
-        ptr = prev_block(h);
+        block = prev_block(h);
         free_size += block_size(prev_f);
-    } 
+    }
 
     if(!is_alloc(next_h)) {
         free_size += block_size(next_h);
     }
 
-    set_block(ptr, free_size, false);
+    set_block(block, free_size, false);
 
     printf("Dobby is FREE :)\n");
 }
@@ -100,7 +101,7 @@ bool heap_check(Heap *heap) {
     do {
         size_t size = block_size(h);
         if(size < MIN_BLOCK) {
-            printf("Block size is less then 16. Heap corrupted\n");
+            printf("Block size is less then 32. Heap corrupted\n");
             check = false;
             break;
         }

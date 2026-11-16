@@ -15,7 +15,7 @@ header_t *next_block(header_t *h) {
 
 header_t *prev_block(header_t *h) { 
     header_t *prev_foot = prev_footer(h);
-    return (header_t *)(h - block_size(prev_foot)); 
+    return (header_t *)((char *)h - block_size(prev_foot)); 
 }
 
 header_t *prev_footer(header_t *head) {
@@ -26,9 +26,9 @@ header_t *footer_of(header_t *head) {
     return (header_t *)((char *)head + block_size(head) - HEADER_SIZE);
 }
 
-void set_block(char *start, size_t size, bool a) {
+void set_block(header_t *start, size_t size, bool a) {
     *(header_t *)start = make_header(size, a);
-    *(header_t *)(start + size - HEADER_SIZE ) = make_header(size, a);
+    *(header_t *)((char*)start + size - HEADER_SIZE) = make_header(size, a);
 }
 
 // removing the flag bit

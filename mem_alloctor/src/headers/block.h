@@ -19,7 +19,7 @@ char *payload_of(header_t *h);
 header_t *prev_block(header_t *h);
 header_t *prev_footer(header_t *head);
 header_t *footer_of(header_t *head);
-void set_block(char *start, size_t size, bool a);
+void set_block(header_t *start, size_t size, bool a);
 bool check_boundary(header_t *head, header_t *foot);
 
 #endif
