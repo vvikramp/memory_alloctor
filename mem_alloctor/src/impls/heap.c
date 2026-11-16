@@ -14,7 +14,11 @@ bool heap_init(Heap *heap, size_t size) {
     }
     heap->start = base + HEADER_SIZE;
     heap->end = base + size - HEADER_SIZE;
-    *(header_t *)heap->start = make_header(heap->end - heap->start, false);
+    
+    *(header_t *)base = make_header(HEADER_SIZE, true); // fake_footer at start
+    *(header_t *)heap->end = make_header(0, true); // fake_header at end
+
+    set_block(heap->start, heap->end - heap->start, false);
     return true;
 }
 
@@ -33,11 +37,14 @@ void *heap_alloc(Heap *heap, size_t size) {
 
         size_t leftover = b_size - need;
         if(leftover >= MIN_BLOCK) {
-            header_t *next = (header_t *)((char *)h + need);
-            *next = make_header(leftover, false); // split the leftover block
-            *h = make_header(need, true);
+            // header_t *next = (header_t *)((char *)h + need);
+            // *next = make_header(leftover, false); // split the leftover block
+            // *h = make_header(need, true);
+
+            set_block((char *)h, need, true); 
+            set_block((char *)h + need, leftover, false); // split
         } else {
-            *h = make_header(b_size, true);
+            set_block((char *)h, b_size, true); 
         }
         
         return (void *)(h+1);
@@ -63,18 +70,27 @@ void heap_free(Heap *heap, void *ptr) {
         return;
     }
     if(!is_alloc(h)){
-        printf("Already Freed -> FREE FAILED\n");
+        printf("Already Freed\n");
         return;
     }
-    
-    *h = *h & ~1; // mark as free
-    printf("Dobby is FREE :)\n");
-    header_t *next_h = next_block(h);
 
-    if((char *)next_h < heap->end && !is_alloc(next_h)) {
-        // next block is free
-        *h = make_header(block_size(h) + block_size(next_h), false);
+    size_t free_size = block_size(ptr);
+
+    header_t *next_h = next_block(h);
+    header_t *prev_f = (header_t *)(char *)h - HEADER_SIZE;
+
+    if(!is_alloc(prev_f)) {
+        ptr = prev_block(h);
+        free_size += block_size(prev_f);
+    } 
+
+    if(!is_alloc(next_h)) {
+        free_size += block_size(next_h);
     }
+
+    set_block(ptr, free_size, false);
+
+    printf("Dobby is FREE :)\n");
 }
 
 bool heap_check(Heap *heap) { 
@@ -104,6 +120,13 @@ bool heap_check(Heap *heap) {
             printf("Continous free blocks found\n");
             check = false;
         }
+
+        if(!check_boundary(h, footer_of(h))) {
+            printf("Header and footer is not same\n");
+            check = false;
+            break;
+        }
+
         h = next_h;
     } while((char *)h < heap->end);
 
