@@ -9,7 +9,7 @@ int main(void) {
 
     Heap heap = {0};
     
-    if(heap_init(&heap, KB(10))) {
+    if(heap_init(&heap, KB(10), BEST)) {
         printf("Heap initiation successfully.\n");
         // printf("sizeof alocated: %ld", (heap.end - heap.start));
     } else {
