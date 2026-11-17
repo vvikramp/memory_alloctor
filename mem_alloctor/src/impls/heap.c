@@ -155,7 +155,7 @@ void heap_free(Heap *heap, void *ptr) {
     }
 
     set_block(block, free_size, false);
-    if(heap->rover > (char *)block && heap->rover < (char *)(block + free_size)) {
+    if(heap->rover > (char *)block && heap->rover < (char *)block + free_size) {
         heap->rover = (char *)block;
     }
 
