@@ -10,7 +10,7 @@
 static header_t *find_fit(Heap *heap, size_t need) {
     FIT fit = heap->fit;
     switch(fit) {
-        case FIRST:
+        case FIRST: {
             for(header_t *h = (header_t *)heap->start; (char *)h < heap->end; h=next_block(h)) {
                 size_t b_size = block_size(h);
                 bool allocted = is_alloc(h);
@@ -20,9 +20,9 @@ static header_t *find_fit(Heap *heap, size_t need) {
                 return h;
             }
             break;
-
-        case BEST:
-            header_t *next_fit = NULL;
+        }
+        case BEST: {
+            header_t *best = NULL;
             size_t size = SIZE_MAX;
 
             for(header_t *h = (header_t *)heap->start; (char *)h < heap->end; h=next_block(h)) {
@@ -32,19 +32,19 @@ static header_t *find_fit(Heap *heap, size_t need) {
                     continue;
                 }
                 if(b_size == need) {
-                    return (void *)h;
+                    return h;
                 }
                 if(b_size < size) {
                     size = b_size;
-                    next_fit = h;
+                    best = h;
                 }
             }
-            if (next_fit != NULL) {
-                return next_fit;
+            if (best != NULL) {
+                return best;
             }
             break;
-
-        case NEXT:
+        }
+        case NEXT: {
             header_t *h = (header_t *)heap->rover;
             do {                
                 size_t b_size = block_size(h);
@@ -60,6 +60,7 @@ static header_t *find_fit(Heap *heap, size_t need) {
                 return h;
             } while((char *)h != heap->rover);
             break;
+        }
         default:
             printf("Invalid fit");
     }
@@ -154,6 +155,9 @@ void heap_free(Heap *heap, void *ptr) {
     }
 
     set_block(block, free_size, false);
+    if(heap->rover > (char *)block && heap->rover < (char *)(block + free_size)) {
+        heap->rover = (char *)block;
+    }
 
     printf("Dobby is FREE :)\n");
 }
