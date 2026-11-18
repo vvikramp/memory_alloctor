@@ -12,7 +12,7 @@ typedef enum {
 typedef struct {
     char *start;
     char *end;
-    char *rover;
+    // char *rover;
     char *free_head;
     FIT fit;
 } Heap;

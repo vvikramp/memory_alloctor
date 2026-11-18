@@ -27,8 +27,8 @@ header_t *footer_of(header_t *head) {
 }
 
 void set_block(header_t *start, size_t size, bool a) {
-    *(header_t *)start = make_header(size, a);
-    *(header_t *)((char*)start + size - HEADER_SIZE) = make_header(size, a);
+    *(header_t *)start = make_header(size, a); // header
+    *(header_t *)((char*)start + size - HEADER_SIZE) = make_header(size, a); // footer
 }
 
 // removing the flag bit
@@ -61,14 +61,22 @@ bool check_boundary(header_t *head, header_t *foot) {
     return false;
 }
 
-next_free(header_t *h) {
-
+header_t *next_free(header_t *h) {
+    header_t *next = (header_t **)((char *)h + HEADER_SIZE);
+    return *next;
 }
 
-prev_free(header_t *h) {
-
+header_t *prev_free(header_t *h) {
+    header_t *prev = (header_t **)((char *)h + (2 * HEADER_SIZE));
+    return *prev;
 }
 
-set_next_free() {
-    
+void set_next_free(header_t *h, header_t next) {
+    header_t *next_free = (header_t **)((char *)h + HEADER_SIZE);
+    next = next_free;
+}
+
+void set_prev_free(header_t *h, header_t prev) {
+    header_t *prev_free = (header_t **)((char *)h + (2 * HEADER_SIZE));
+    prev = prev_free;
 }
