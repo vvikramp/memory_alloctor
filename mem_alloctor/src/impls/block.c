@@ -60,3 +60,15 @@ bool check_boundary(header_t *head, header_t *foot) {
     }
     return false;
 }
+
+next_free(header_t *h) {
+
+}
+
+prev_free(header_t *h) {
+
+}
+
+set_next_free() {
+    
+}
