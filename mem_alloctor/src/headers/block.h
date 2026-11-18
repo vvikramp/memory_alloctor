@@ -27,7 +27,7 @@ bool check_boundary(header_t *head, header_t *foot);
 // Explict free list management functions
 header_t *next_free(header_t *h);
 header_t *prev_free(header_t *h);
-void set_next_free(header_t *h, header_t next);
-void set_prev_free(header_t *h, header_t prev);
+void set_next_free(header_t *h, header_t *next);
+void set_prev_free(header_t *h, header_t *prev);
 
 #endif

@@ -62,21 +62,21 @@ bool check_boundary(header_t *head, header_t *foot) {
 }
 
 header_t *next_free(header_t *h) {
-    header_t *next = (header_t **)((char *)h + HEADER_SIZE);
+    header_t **next = (header_t **)((char *)h + HEADER_SIZE);
     return *next;
 }
 
 header_t *prev_free(header_t *h) {
-    header_t *prev = (header_t **)((char *)h + (2 * HEADER_SIZE));
+    header_t **prev = (header_t **)((char *)h + (2 * HEADER_SIZE));
     return *prev;
 }
 
-void set_next_free(header_t *h, header_t next) {
-    header_t *next_free = (header_t **)((char *)h + HEADER_SIZE);
-    next = next_free;
+void set_next_free(header_t *h, header_t *next) {
+    header_t **next_free = (header_t **)((char *)h + HEADER_SIZE);
+    *next_free = next;
 }
 
-void set_prev_free(header_t *h, header_t prev) {
-    header_t *prev_free = (header_t **)((char *)h + (2 * HEADER_SIZE));
-    prev = prev_free;
+void set_prev_free(header_t *h, header_t *prev) {
+    header_t **prev_free = (header_t **)((char *)h + (2 * HEADER_SIZE));
+    *prev_free = prev;
 }

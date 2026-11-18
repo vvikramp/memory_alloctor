@@ -6,12 +6,40 @@
 #include "block.h"
 #include "heap.h"
 
+static void list_insert(Heap *heap, header_t *h) {
+    // Last ins - make the insert block as the new free head
+    if(heap->free_head != NULL) {
+        set_prev_free(heap->free_head, h);
+    }
+    set_next_free(h, heap->free_head);
+    set_prev_free(h, NULL);
+
+    heap->free_head = h;
+}
+
+static void list_remove(Heap *heap, header_t *h) {
+    header_t *h_prev = prev_free(h);
+    header_t *h_next = next_free(h);
+
+    // start of the list
+    if((char *)h == heap->free_head){
+        heap->free_head = h_next;    
+        set_prev_free(h, NULL);
+    } else {
+        set_next_free(h_prev, h_next); // end/middle of the list
+    }
+
+    if(h_next != NULL) {
+        set_prev_free(h_next, h_prev);
+    }
+}
+
 // return the block based on the fit
 static header_t *find_fit(Heap *heap, size_t need) {
     FIT fit = heap->fit;
     switch(fit) {
         case FIRST: {
-            for(header_t *h = (header_t *)heap->free_head; (char *)h < heap->end; h=next_free(h)) {
+            for(header_t *h = (header_t *)heap->free_head; (char *)h != NULL; h=next_free(h)) {
                 size_t b_size = block_size(h);
                 bool allocted = is_alloc(h);
                 if(b_size < need || allocted) {
@@ -25,7 +53,7 @@ static header_t *find_fit(Heap *heap, size_t need) {
             header_t *best = NULL;
             size_t size = SIZE_MAX;
 
-            for(header_t *h = (header_t *)heap->free_head; (char *)h < heap->end; h=next_free(h)) {
+            for(header_t *h = (header_t *)heap->free_head; (char *)h != NULL; h=next_free(h)) {
                 size_t b_size = block_size(h);
                 bool allocted = is_alloc(h);
                 if(b_size < need || allocted) {
@@ -44,23 +72,23 @@ static header_t *find_fit(Heap *heap, size_t need) {
             }
             break;
         }
-        case NEXT: {
-            header_t *h = (header_t *)heap->rover;
-            do {                
-                size_t b_size = block_size(h);
-                bool allocted = is_alloc(h);
-                if(b_size < need || allocted) {
-                    h = next_block(h);
-                    if((char *)h == heap->end) {
-                       h = (header_t *)heap->start;
-                    }
-                    continue;
-                }
-                heap->rover = (char *)h;
-                return h;
-            } while((char *)h != heap->rover);
-            break;
-        }
+        // case NEXT: {
+        //     header_t *h = (header_t *)heap->rover;
+        //     do {                
+        //         size_t b_size = block_size(h);
+        //         bool allocted = is_alloc(h);
+        //         if(b_size < need || allocted) {
+        //             h = next_block(h);
+        //             if((char *)h == heap->end) {
+        //                h = (header_t *)heap->start;
+        //             }
+        //             continue;
+        //         }
+        //         heap->rover = (char *)h;
+        //         return h;
+        //     } while((char *)h != heap->rover);
+        //     break;
+        // }
         default:
             printf("Invalid fit");
     }
@@ -81,35 +109,6 @@ static void place_block(Heap *heap, header_t *h, size_t need) {
     } 
     else {
         set_block(h, b_size, true);
-    }
-}
-
-static void list_insert(Heap *heap, header_t *h) {
-    // Last in - make the insert block as the new free head
-    set_next_free(h, heap->free_head);
-    set_prev_free(h, NULL);
-    set_prev_free(heap->free_head, h);
-
-    heap->free_head = h;
-}
-
-static void list_remove(Heap *heap, header_t *h) {
-    header_t *h_prev = prev_free(h);
-    header_t *h_next = next_free(h);
-
-    // start of the list
-    if((char *)h == heap->free_head){
-        heap->free_head = h_next;    
-        set_prev_free(h, NULL);
-    } else {
-        set_next_free(h_prev, h_next);
-    }
-
-    // end of the list
-    if(h_next == NULL) {
-        set_next_free(h_prev, NULL);
-    } else {
-        set_prev_free(h_next, h_prev);
     }
 }
 
@@ -236,7 +235,7 @@ bool heap_check(Heap *heap) {
         h = next_h;
     } while((char *)h < heap->end);
 
-    for(header_t *h = (header_t *)heap->free_head; (char *)h < heap->end; h=next_free(h)) {
+    for(header_t *h = (header_t *)heap->free_head; (char *)h != NULL; h=next_free(h)) {
         if((char *)h < heap->start || (char *)h >= heap->end) {
             printf("Free list block outside heap space found.\n");
             check = false;

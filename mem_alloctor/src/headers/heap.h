@@ -13,7 +13,7 @@ typedef struct {
     char *start;
     char *end;
     // char *rover;
-    char *free_head;
+    void *free_head;
     FIT fit;
 } Heap;
 

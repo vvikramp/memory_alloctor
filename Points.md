@@ -37,3 +37,8 @@
 size_t -> Big enough to hold the size of any object
 uintptr_t -> Big enough to hold any pointer and convert it back without losing bits
 
+- Crazy pointer work in explict free list helpers. Check those properly.
+    header_t *next_free(header_t *h);
+    header_t *prev_free(header_t *h);
+    void set_next_free(header_t *h, header_t *next);
+    void set_prev_free(header_t *h, header_t *prev);
