@@ -39,7 +39,7 @@ static header_t *find_fit(Heap *heap, size_t need) {
     FIT fit = heap->fit;
     switch(fit) {
         case FIRST: {
-            for(header_t *h = (header_t *)heap->free_head; (char *)h != NULL; h=next_free(h)) {
+            for(header_t *h = (header_t *)heap->free_head; h != NULL; h=next_free(h)) {
                 size_t b_size = block_size(h);
                 bool allocted = is_alloc(h);
                 if(b_size < need || allocted) {
@@ -53,7 +53,7 @@ static header_t *find_fit(Heap *heap, size_t need) {
             header_t *best = NULL;
             size_t size = SIZE_MAX;
 
-            for(header_t *h = (header_t *)heap->free_head; (char *)h != NULL; h=next_free(h)) {
+            for(header_t *h = (header_t *)heap->free_head; h != NULL; h=next_free(h)) {
                 size_t b_size = block_size(h);
                 bool allocted = is_alloc(h);
                 if(b_size < need || allocted) {
@@ -235,7 +235,7 @@ bool heap_check(Heap *heap) {
         h = next_h;
     } while((char *)h < heap->end);
 
-    for(header_t *h = (header_t *)heap->free_head; (char *)h != NULL; h=next_free(h)) {
+    for(header_t *h = (header_t *)heap->free_head; h != NULL; h=next_free(h)) {
         if((char *)h < heap->start || (char *)h >= heap->end) {
             printf("Free list block outside heap space found.\n");
             check = false;
